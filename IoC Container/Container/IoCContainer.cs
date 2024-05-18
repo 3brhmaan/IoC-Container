@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace IoC_Container.Container;
 public class IoCContainer
 {
     Dictionary<Type , Type> _map = new Dictionary<Type , Type>();
+    private MethodInfo? _resolveMethod;
 
     public void Register<TContract, TImplementation>()
         where TImplementation : class , TContract
@@ -36,6 +38,22 @@ public class IoCContainer
     private TContract Create<TContract>(Type implementationType)
         where TContract : class
     {
-        return Activator.CreateInstance(implementationType, null) as TContract;
+        _resolveMethod ??= typeof(IoCContainer)
+            .GetMethod("Resolve");
+
+        var constructorParameters = implementationType.GetConstructors()
+            .OrderByDescending(c => c.GetParameters().Length)
+            .First()
+            .GetParameters()
+            .Select(p =>
+            {
+                var genericResolveMethod =
+                    _resolveMethod?.MakeGenericMethod(p.ParameterType);
+
+                return genericResolveMethod?.Invoke(this, null);
+            })
+            .ToArray();
+
+        return Activator.CreateInstance(implementationType, constructorParameters) as TContract;
     }
 }
