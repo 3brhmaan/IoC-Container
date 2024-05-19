@@ -1,5 +1,5 @@
 # Simple Simulation Of The IoC Container Operation using Reflection 📦
-    IoC Container used to provide Dependencies to ever asks for it 
+    IoC Container used to provide Dependencies to whoever asks for it 
 
 ## Features 💡: 
 1. **Registering Dependencies** using Contract/interface and Implementation
