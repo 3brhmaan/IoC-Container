@@ -9,26 +9,41 @@ namespace IoC_Container.Container;
 
 public class IoCContainer
 {
-    Dictionary<Type , Type> _map = new Dictionary<Type , Type>();
+    private Dictionary<Type, Type> _map = new();
     private MethodInfo? _resolveMethod;
 
     public void Register<TContract, TImplementation>()
-        where TImplementation : class , TContract
+        where TImplementation : class, TContract
         where TContract : class
     {
-        if (!_map.ContainsKey(typeof(TContract)))
+        if (!_map.ContainsKey(typeof(TContract))) _map.Add(typeof(TContract), typeof(TImplementation));
+    }
+
+    public void Register(Type contract, Type implementation)
+    {
+        if (!_map.ContainsKey(contract))
         {
-            _map.Add(typeof(TContract) , typeof(TImplementation));
+            _map.Add(contract, implementation);
         }
     }
 
     public TContract Resolve<TContract>()
         where TContract : class
     {
-        if (!_map.ContainsKey(typeof(TContract)))
+        if (typeof(TContract).IsGenericType &&
+            _map.ContainsKey(typeof(TContract)
+                .GetGenericTypeDefinition()))
         {
-            throw new ArgumentException($"No Registration found for {typeof(TContract)}");
+            var openImplementation = _map[typeof(TContract).GetGenericTypeDefinition()];
+            
+            var closedImplementation = openImplementation
+                .MakeGenericType(typeof(TContract).GenericTypeArguments);
+
+            return Create<TContract>(closedImplementation);
         }
+
+        if (!_map.ContainsKey(typeof(TContract)))
+            throw new ArgumentException($"No Registration found for {typeof(TContract)}");
 
         var implementation = _map[typeof(TContract)];
 

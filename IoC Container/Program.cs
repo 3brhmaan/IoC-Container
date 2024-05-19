@@ -9,13 +9,13 @@ internal class Program
     {
         var iocContainer = new IoCContainer();
 
-        iocContainer.Register<IWaterService , TapWaterService>();
-        var waterService = iocContainer.Resolve<IWaterService>();
+        iocContainer.Register<IWaterService, TapWaterService>();
 
-        iocContainer.Register<ICoffeeService , CoffeeService>();
+        iocContainer.Register(typeof(IBeanService<>), typeof(ArabicaBeanService<>));
+
+        iocContainer.Register<ICoffeeService, CoffeeService>();
         var coffeeService = iocContainer.Resolve<ICoffeeService>();
 
-        Console.WriteLine(waterService.GetType());
         Console.WriteLine(coffeeService.GetType());
     }
 }
